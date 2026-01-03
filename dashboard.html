@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Customer Dashboard | SecureBank India</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Professional Glassmorphism Styles */
+        .dashboard-wrapper { width: 90%; max-width: 1000px; margin: 20px auto; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2); padding: 30px; border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5); color: white;
+        }
+        .account-summary-bar {
+            background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 12px;
+            border-left: 6px solid #00d2ff; margin-bottom: 25px; text-align: left;
+        }
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+        .action-buttons { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 30px; }
+        
+        .btn-glass {
+            background: rgba(0, 210, 255, 0.1); border: 1px solid #00d2ff; color: #00d2ff;
+            padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s;
+            text-decoration: none; display: inline-block; text-align: center; font-size: 0.85rem;
+        }
+        .btn-glass:hover, .btn-active { background: #00d2ff; color: #0f2027; }
+        .transfer-section { background: rgba(0, 0, 0, 0.2); padding: 20px; border-radius: 12px; margin-bottom: 30px; text-align: left; display: none; }
+        
+        /* Profile Module Styling */
+        .profile-card { display: flex; align-items: center; gap: 20px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; }
+        .profile-avatar { width: 70px; height: 70px; background: #00d2ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: #0f2027; font-weight: bold; }
+        .info-row { margin-bottom: 15px; }
+        .info-row label { color: #00d2ff; font-size: 0.8rem; display: block; margin-bottom: 2px; text-transform: uppercase; }
+        .info-row p { font-size: 1.1rem; margin: 0; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 10px; overflow: hidden; }
+        th { background: rgba(0, 210, 255, 0.3); color: #00d2ff; padding: 15px; }
+        td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left;}
+        .status-success { color: #00ff88; font-weight: bold; }
+        .ben-chip { background: rgba(0, 210, 255, 0.2); padding: 8px 15px; border-radius: 20px; border: 1px solid #00d2ff; cursor: pointer; font-size: 0.85rem; margin: 5px; display: inline-block; transition: 0.3s;}
+        .ben-chip:hover { background: #00d2ff; color: #0f2027; }
+    </style>
+</head>
+<body onload="initializeDashboard()">
+
+    <div class="dashboard-wrapper">
+        <div class="glass-panel">
+            <h1 id="welcomeUser" style="color: #00d2ff; text-align: center;">Welcome, Customer</h1>
+            
+            <div class="account-summary-bar">
+                <div class="summary-grid">
+                    <div><strong>Account Number:</strong> <span id="displayAccNum">---</span></div>
+                    <div><strong>Account Type:</strong> <span id="displayAccType">---</span></div>
+                    <div><strong>Balance:</strong> <span style="font-size: 1.4rem; color: #00d2ff;" id="liveBalance">₹ 0.00</span></div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn-glass" id="btn-profile" onclick="showModule('profileSection')">👤 Profile</button>
+                <button class="btn-glass" id="btn-deposit" onclick="showModule('depositForm')">💰 Deposit</button>
+                <button class="btn-glass" id="btn-transfer" onclick="showModule('transferForm')">💸 Transfer</button>
+                <button class="btn-glass" id="btn-history" onclick="showModule('transactionSection')">📄 History</button>
+                <button class="btn-glass" id="btn-bens" onclick="showModule('beneficiarySection')">👥 Contacts</button>
+                <a href="index.html" class="btn-glass" onclick="logout()" style="border-color: #ff4b2b; color: #ff4b2b; text-decoration: none;">Logout</a>
+            </div>
+
+            <div id="depositForm" class="transfer-section">
+                <h3 style="color: #00ff88;">Quick Cash Deposit</h3>
+                <p style="font-size: 0.8rem; opacity: 0.7; margin-bottom: 15px;">Add funds to your primary balance instantly.</p>
+                <div style="display: grid; grid-template-columns: 1fr auto; gap: 15px;">
+                    <input type="number" id="depAmount" placeholder="Enter Amount (₹)" style="padding: 10px; border-radius: 5px; border: 1px solid #00ff88; background: none; color: white;">
+                    <button class="btn-glass" onclick="executeDeposit()" style="border-color: #00ff88; color: #00ff88; width: 120px;">Confirm</button>
+                </div>
+            </div>
+
+            <div id="profileSection" class="transfer-section">
+                <h3 style="color: #00d2ff;">Account Profile</h3>
+                <div class="profile-card">
+                    <div class="profile-avatar" id="profInitials">U</div>
+                    <div>
+                        <h2 id="profName" style="margin: 0;">User Name</h2>
+                        <span id="profStatus" style="color: #00ff88; font-size: 0.9rem;">● Verified Customer</span>
+                    </div>
+                </div>
+                <div class="info-row"><label>Full Name</label><p id="infoName">---</p></div>
+                <div class="info-row"><label>Email ID</label><p id="infoEmail">---</p></div>
+                <div class="info-row"><label>Account Number</label><p id="infoAcc">---</p></div>
+                <div class="info-row"><label>Account Type</label><p id="infoType">---</p></div>
+            </div>
+
+            <div id="beneficiarySection" class="transfer-section">
+                <h3 style="color: #00d2ff;">Manage Beneficiaries</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 15px;">
+                    <input type="text" id="benName" placeholder="Name" style="padding: 10px; border-radius: 5px; border: 1px solid #00d2ff; background: none; color: white;">
+                    <input type="text" id="benAcc" placeholder="10-Digit A/C" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="padding: 10px; border-radius: 5px; border: 1px solid #00d2ff; background: none; color: white;">
+                    <button class="btn-glass" onclick="saveBeneficiary()">+ Add</button>
+                </div>
+                <div id="benList" style="margin-top: 15px;"></div>
+            </div>
+
+            <div id="transferForm" class="transfer-section">
+                <h3 style="color: #00d2ff;">Quick Transfer (IMPS/NEFT)</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="input-group">
+                        <label style="display:block; margin-bottom:5px;">Recipient A/C</label>
+                        <input type="text" id="accNum" placeholder="10-Digit A/C" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #00d2ff; background: none; color: white;">
+                    </div>
+                    <div class="input-group">
+                        <label style="display:block; margin-bottom:5px;">Amount (₹)</label>
+                        <input type="number" id="sendAmount" placeholder="0.00" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #00d2ff; background: none; color: white;">
+                    </div>
+                </div>
+                <button class="btn-glass" onclick="startSecurityCheck()" style="margin-top: 15px; width: 100%;">Confirm Payment</button>
+            </div>
+
+            <div id="transactionSection" class="transfer-section">
+                <h3 style="text-align: left; color: #00d2ff;">Recent Transactions</h3>
+                <table>
+                    <thead><tr><th>Date</th><th>Description</th><th>Amount</th><th>Status</th></tr></thead>
+                    <tbody id="transactionTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. SYNC LOGIC (Prevents Invalid Credentials) ---
+        function syncToDatabase() {
+            const allUsers = JSON.parse(localStorage.getItem("bankUsersDatabase")) || [];
+            const currentAccNum = localStorage.getItem("userAccNum");
+            const userIndex = allUsers.findIndex(u => u.accNum === currentAccNum);
+            
+            if (userIndex !== -1) {
+                allUsers[userIndex].balance = parseFloat(localStorage.getItem("userBalance"));
+                allUsers[userIndex].transactions = JSON.parse(localStorage.getItem("bankTransactions"));
+                localStorage.setItem("bankUsersDatabase", JSON.stringify(allUsers));
+            }
+        }
+
+        function initializeDashboard() {
+            const savedName = localStorage.getItem("userName");
+            const savedType = localStorage.getItem("userAccountType");
+            const savedAcc = localStorage.getItem("userAccNum");
+            const savedEmail = localStorage.getItem("userEmail");
+
+            if(savedName) {
+                document.getElementById('welcomeUser').innerText = "Welcome, " + savedName;
+                document.getElementById('profName').innerText = savedName;
+                document.getElementById('infoName').innerText = savedName;
+                document.getElementById('profInitials').innerText = savedName.charAt(0).toUpperCase();
+            }
+            if(savedType) {
+                const typeEl = document.getElementById('displayAccType');
+                typeEl.innerText = savedType;
+                document.getElementById('infoType').innerText = savedType;
+                if(savedType === "Current Account") typeEl.style.color = "#ffcc00"; 
+            }
+            if(savedAcc) {
+                document.getElementById('displayAccNum').innerText = savedAcc;
+                document.getElementById('infoAcc').innerText = savedAcc;
+            }
+            if(savedEmail) document.getElementById('infoEmail').innerText = savedEmail;
+
+            updateBalanceDisplay();
+            loadTransactions();
+            loadBeneficiaries();
+            showModule('profileSection');
+        }
+
+        function executeDeposit() {
+            const depAmt = parseFloat(document.getElementById('depAmount').value);
+            if(isNaN(depAmt) || depAmt <= 0) return alert("Enter valid amount.");
+
+            let currentBal = parseFloat(localStorage.getItem("userBalance")) || 0;
+            localStorage.setItem("userBalance", currentBal + depAmt);
+
+            saveTransaction("Cash Deposit - Self", depAmt);
+            document.getElementById('depAmount').value = "";
+            alert("Deposit Successful!");
+        }
+
+        function startSecurityCheck() {
+            const acc = document.getElementById('accNum').value;
+            const amt = parseFloat(document.getElementById('sendAmount').value);
+            const currentBal = parseFloat(localStorage.getItem("userBalance"));
+
+            if(acc.length !== 10) return alert("Account Number must be 10 digits.");
+            if(isNaN(amt) || amt <= 0 || amt > currentBal) return alert("Check amount or balance.");
+
+            const otp = Math.floor(1000 + Math.random() * 9000);
+            if(prompt("SECURITY VERIFICATION: Enter OTP: " + otp) == otp) {
+                localStorage.setItem("userBalance", currentBal - amt);
+                saveTransaction("Transfer to A/C " + acc, -amt);
+                alert("Transfer Successful!");
+                showModule('transactionSection');
+            }
+        }
+
+        function saveTransaction(desc, amt) {
+            const transactionObj = {
+                date: new Date().toISOString().split('T')[0],
+                desc: desc,
+                amt: amt,
+                status: "Completed"
+            };
+            const history = JSON.parse(localStorage.getItem("bankTransactions")) || [];
+            history.push(transactionObj);
+            localStorage.setItem("bankTransactions", JSON.stringify(history));
+            
+            syncToDatabase(); // Update Database
+            updateBalanceDisplay();
+            loadTransactions();
+        }
+
+        function updateBalanceDisplay() {
+            let balance = localStorage.getItem("userBalance") || 0;
+            document.getElementById('liveBalance').innerText = "₹ " + parseFloat(balance).toLocaleString('en-IN', {minimumFractionDigits: 2});
+        }
+
+        function loadTransactions() {
+            const tableBody = document.getElementById("transactionTableBody");
+            const data = JSON.parse(localStorage.getItem("bankTransactions")) || [];
+            tableBody.innerHTML = data.slice().reverse().map(item => `
+                <tr>
+                    <td>${item.date}</td>
+                    <td>${item.desc}</td>
+                    <td style="color: ${item.amt < 0 ? '#ff4b2b' : '#00ff88'}">${item.amt < 0 ? '-' : '+'}₹ ${Math.abs(item.amt).toLocaleString('en-IN')}</td>
+                    <td class="status-success">${item.status}</td>
+                </tr>
+            `).join('');
+        }
+
+        function saveBeneficiary() {
+            const name = document.getElementById('benName').value;
+            const acc = document.getElementById('benAcc').value;
+            if(name && acc.length === 10) {
+                let bens = JSON.parse(localStorage.getItem("bankBens")) || [];
+                bens.push({name, acc});
+                localStorage.setItem("bankBens", JSON.stringify(bens));
+                loadBeneficiaries();
+                document.getElementById('benName').value = ""; document.getElementById('benAcc').value = "";
+            }
+        }
+
+        function loadBeneficiaries() {
+            const bens = JSON.parse(localStorage.getItem("bankBens")) || [];
+            document.getElementById('benList').innerHTML = bens.map(b => `<span class="ben-chip" onclick="autoFill('${b.acc}')">👤 ${b.name}</span>`).join('');
+        }
+
+        function autoFill(acc) {
+            showModule('transferForm'); 
+            document.getElementById('accNum').value = acc;
+        }
+
+        function showModule(moduleId) {
+            document.querySelectorAll('.transfer-section').forEach(section => section.style.display = 'none');
+            document.getElementById(moduleId).style.display = 'block';
+            document.querySelectorAll('.btn-glass').forEach(btn => btn.classList.remove('btn-active'));
+            const btnId = {'profileSection':'btn-profile','depositForm':'btn-deposit','transferForm':'btn-transfer','transactionSection':'btn-history','beneficiarySection':'btn-bens'}[moduleId];
+            if(btnId) document.getElementById(btnId).classList.add('btn-active');
+        }
+
+        function logout() {
+            localStorage.removeItem('userName');
+            localStorage.removeItem('userAccountType');
+            localStorage.removeItem('userAccNum');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

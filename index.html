@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureBank | Access Portal</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .glass-panel { max-width: 550px; width: 95%; margin: 50px auto; }
+        select { width: 100%; padding: 12px; border-radius: 8px; background: rgba(255, 255, 255, 0.05); color: white; border: 1px solid rgba(0, 210, 255, 0.3); outline: none; margin-bottom: 15px; }
+        select option { background: #203a43; color: white; }
+        .recovery-box { display: none; background: rgba(0, 0, 0, 0.3); padding: 20px; border-radius: 12px; margin-top: 20px; border: 1px dashed #00d2ff; text-align: left; }
+        .hint { font-size: 0.75rem; color: #00d2ff; margin-bottom: 10px; display: block; opacity: 0.8; }
+    </style>
+</head>
+<body>
+    <div class="glass-panel">
+        <div id="registerSection">
+            <div class="brand"><h2>Secure<span>Bank</span></h2><p>NEW ACCOUNT REGISTRATION</p></div>
+            <form id="registerForm">
+                <div class="input-group"><label>Full Name</label><input type="text" id="regFullName" placeholder="e.g. Shaik Sharifunnisa" required></div>
+                <div class="input-group"><label>Choose Unique 10-Digit A/C Number</label><input type="text" id="regAccNum" placeholder="e.g. 3120075545" maxlength="10" required></div>
+                <div class="input-group"><label>Email ID</label><input type="email" id="regEmail" placeholder="skatsheen30@gmail.com" required></div>
+                <div class="input-group">
+                    <label>Select Account Type</label>
+                    <select id="regType">
+                        <option value="Savings Account">Savings Account</option>
+                        <option value="Current Account">Current Account</option>
+                    </select>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="input-group"><label>Set Password</label><input type="password" id="regPass" required></div>
+                    <div class="input-group"><label>Confirm</label><input type="password" id="regConfirmPass" required></div>
+                </div>
+                <span class="hint">Use 8+ chars with Uppercase, Lowercase, Number & Symbol.</span>
+                <button type="button" onclick="handleRegister()" class="login-btn">Create Secure Account</button>
+                <div class="options"><p>Already a member? <a href="#" onclick="showLogin()">Login here</a></p></div>
+            </form>
+        </div>
+
+        <div id="loginSection" style="display: none;">
+            <div class="brand"><h2>Secure<span>Bank</span></h2><p>IDENTITY VERIFICATION</p></div>
+            <form id="loginForm">
+                <div class="input-group"><label>Account Number or Email</label><input type="text" id="loginId" required></div>
+                <div class="input-group"><label>Account Type</label>
+                    <select id="loginType">
+                        <option value="Savings Account">Savings Account</option>
+                        <option value="Current Account">Current Account</option>
+                    </select>
+                </div>
+                <div class="input-group"><label>Password</label><input type="password" id="loginPass" required></div>
+                <button type="button" onclick="handleLogin()" class="login-btn">Secure Login</button>
+                <div class="options"><p><a href="#" onclick="toggleRecovery()">Forgot Password?</a> | <a href="#" onclick="showRegister()">New Account</a></p></div>
+            </form>
+            <div id="recoveryPanel" class="recovery-box">
+                <h4 style="color: #00d2ff; margin: 0 0 10px 0;">Recovery</h4>
+                <div class="input-group"><label>Email</label><input type="email" id="recoverEmail"></div>
+                <div class="input-group"><label>A/C Number</label><input type="text" id="recoverAcc"></div>
+                <button type="button" onclick="recoverPassword()" class="btn-glass" style="width: 100%;">Verify Identity</button>
+            </div>
+        </div>
+        <div class="footer-note"><p>Protected by 256-bit AES Encryption</p></div>
+    </div>
+
+    <script>
+        function showRegister() { document.getElementById('loginSection').style.display = 'none'; document.getElementById('registerSection').style.display = 'block'; }
+        function showLogin() { document.getElementById('registerSection').style.display = 'none'; document.getElementById('loginSection').style.display = 'block'; }
+        function toggleRecovery() { const panel = document.getElementById('recoveryPanel'); panel.style.display = (panel.style.display === 'none') ? 'block' : 'none'; }
+
+        function handleRegister() {
+            const name = document.getElementById('regFullName').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const accNum = document.getElementById('regAccNum').value.trim();
+            const type = document.getElementById('regType').value;
+            const pass = document.getElementById('regPass').value;
+            const confirmPass = document.getElementById('regConfirmPass').value;
+
+            const allUsers = JSON.parse(localStorage.getItem("bankUsersDatabase")) || [];
+            if (allUsers.some(u => u.accNum === accNum)) return alert("Error: Account Number already exists.");
+            if (accNum.length !== 10) return alert("Account Number must be 10 digits.");
+            
+            const strongRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,})/;
+            if(!strongRegex.test(pass)) return alert("Weak Password! Check requirements.");
+            if (pass !== confirmPass) return alert("Passwords mismatch.");
+
+            if (name && email && pass) {
+                const newUser = {
+                    name, email, accNum, type, pass: btoa(pass),
+                    balance: 25000,
+                    transactions: [{ date: new Date().toLocaleDateString(), desc: "Opening Balance", amt: 25000, status: "Completed" }]
+                };
+                allUsers.push(newUser);
+                localStorage.setItem("bankUsersDatabase", JSON.stringify(allUsers));
+                alert("Account created! Please login.");
+                showLogin();
+            }
+        }
+
+        function handleLogin() {
+            const typedId = document.getElementById('loginId').value.trim();
+            const typedType = document.getElementById('loginType').value;
+            const typedPass = btoa(document.getElementById('loginPass').value);
+            const allUsers = JSON.parse(localStorage.getItem("bankUsersDatabase")) || [];
+
+            const user = allUsers.find(u => (u.accNum === typedId || u.email === typedId) && u.pass === typedPass && u.type === typedType);
+
+            if (user) {
+                localStorage.setItem("userName", user.name);
+                localStorage.setItem("userEmail", user.email);
+                localStorage.setItem("userAccountType", user.type);
+                localStorage.setItem("userAccNum", user.accNum);
+                localStorage.setItem("userBalance", user.balance);
+                localStorage.setItem("bankTransactions", JSON.stringify(user.transactions));
+                window.location.href = "dashboard.html";
+            } else {
+                alert("Identity Verification Failed: Credentials do not match.");
+            }
+        }
+
+        function recoverPassword() {
+            const email = document.getElementById('recoverEmail').value.trim();
+            const acc = document.getElementById('recoverAcc').value.trim();
+            const allUsers = JSON.parse(localStorage.getItem("bankUsersDatabase")) || [];
+            const user = allUsers.find(u => u.email === email && u.accNum === acc);
+            if (user) alert("Your Password: " + atob(user.pass));
+            else alert("Records not found.");
+        }
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureBank | Access Portal</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .glass-panel { max-width: 550px; width: 95%; margin: 50px auto; }
+        select { width: 100%; padding: 12px; border-radius: 8px; background: rgba(255, 255, 255, 0.05); color: white; border: 1px solid rgba(0, 210, 255, 0.3); outline: none; margin-bottom: 15px; }
+        select option { background: #203a43; color: white; }
+        .recovery-box { display: none; background: rgba(0, 0, 0, 0.3); padding: 20px; border-radius: 12px; margin-top: 20px; border: 1px dashed #00d2ff; text-align: left; }
+        .hint { font-size: 0.75rem; color: #00d2ff; margin-bottom: 10px; display: block; opacity: 0.8; }
+    </style>
+</head>
+<body>
+    <div class="glass-panel">
+        <div id="registerSection">
+            <div class="brand"><h2>Secure<span>Bank</span></h2><p>NEW ACCOUNT REGISTRATION</p></div>
+            <form id="registerForm">
+                <div class="input-group"><label>Full Name</label><input type="text" id="regFullName" placeholder="e.g. Shaik Sharifunnisa" required></div>
+                <div class="input-group"><label>Choose Unique 10-Digit A/C Number</label><input type="text" id="regAccNum" placeholder="e.g. 3120075545" maxlength="10" required></div>
+                <div class="input-group"><label>Email ID</label><input type="email" id="regEmail" placeholder="skatsheen30@gmail.com" required></div>
+                <div class="input-group">
+                    <label>Select Account Type</label>
+                    <select id="regType">
+                        <option value="Savings Account">Savings Account</option>
+                        <option value="Current Account">Current Account</option>
+                    </select>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="input-group"><label>Set Password</label><input type="password" id="regPass" required></div>
+                    <div class="input-group"><label>Confirm</label><input type="password" id="regConfirmPass" required></div>
+                </div>
+                <span class="hint">Use 8+ chars with Uppercase, Lowercase, Number & Symbol.</span>
+                <button type="button" onclick="handleRegister()" class="login-btn">Create Secure Account</button>
+                <div class="options"><p>Already a member? <a href="#" onclick="showLogin()">Login here</a></p></div>
+            </form>
+        </div>
+
+        <div id="loginSection" style="display: none;">
+            <div class="brand"><h2>Secure<span>Bank</span></h2><p>IDENTITY VERIFICATION</p></div>
+            <form id="loginForm">
+                <div class="input-group"><label>Account Number or Email</label><input type="text" id="loginId" required></div>
+                <div class="input-group"><label>Account Type</label>
+                    <select id="loginType">
+                        <option value="Savings Account">Savings Account</option>
+                        <option value="Current Account">Current Account</option>
+                    </select>
+                </div>
+                <div class="input-group"><label>Password</label><input type="password" id="loginPass" required></div>
+                <button type="button" onclick="handleLogin()" class="login-btn">Secure Login</button>
+                <div class="options"><p><a href="#" onclick="toggleRecovery()">Forgot Password?</a> | <a href="#" onclick="showRegister()">New Account</a></p></div>
+            </form>
+            <div id="recoveryPanel" class="recovery-box">
+                <h4 style="color: #00d2ff; margin: 0 0 10px 0;">Recovery</h4>
+                <div class="input-group"><label>Email</label><input type="email" id="recoverEmail"></div>
+                <div class="input-group"><label>A/C Number</label><input type="text" id="recoverAcc"></div>
+                <button type="button" onclick="recoverPassword()" class="btn-glass" style="width: 100%;">Verify Identity</button>
+            </div>
+        </div>
+        <div class="footer-note"><p>Protected by 256-bit AES Encryption</p></div>
+    </div>
+
+    <script>
+        function showRegister() { document.getElementById('loginSection').style.display = 'none'; document.getElementById('registerSection').style.display = 'block'; }
+        function showLogin() { document.getElementById('registerSection').style.display = 'none'; document.getElementById('loginSection').style.display = 'block'; }
+        function toggleRecovery() { const panel = document.getElementById('recoveryPanel'); panel.style.display = (panel.style.display === 'none') ? 'block' : 'none'; }
+
+        function handleRegister() {
+            const name = document.getElementById('regFullName').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const accNum = document.getElementById('regAccNum').value.trim();
+            const type = document.getElementById('regType').value;
+            const pass = document.getElementById('regPass').value;
+            const confirmPass = document.getElementById('regConfirmPass').value;
+
+            const allUsers = JSON.parse(localStorage.getItem("bankUsersDatabase")) || [];
+            if (allUsers.some(u => u.accNum === accNum)) return alert("Error: Account Number already exists.");
+            if (accNum.length !== 10) return alert("Account Number must be 10 digits.");
+            
+            const strongRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,})/;
+            if(!strongRegex.test(pass)) return alert("Weak Password! Check requirements.");
+            if (pass !== confirmPass) return alert("Passwords mismatch.");
+
+            if (name && email && pass) {
+                const newUser = {
+                    name, email, accNum, type, pass: btoa(pass),
+                    balance: 25000,
+                    transactions: [{ date: new Date().toLocaleDateString(), desc: "Opening Balance", amt: 25000, status: "Completed" }]
+                };
+                allUsers.push(newUser);
+                localStorage.setItem("bankUsersDatabase", JSON.stringify(allUsers));
+                alert("Account created! Please login.");
+                showLogin();
+            }
+        }
+
+        function handleLogin() {
+            const typedId = document.getElementById('loginId').value.trim();
+            const typedType = document.getElementById('loginType').value;
+            const typedPass = btoa(document.getElementById('loginPass').value);
+            const allUsers = JSON.parse(localStorage.getItem("bankUsersDatabase")) || [];
+
+            const user = allUsers.find(u => (u.accNum === typedId || u.email === typedId) && u.pass === typedPass && u.type === typedType);
+
+            if (user) {
+                localStorage.setItem("userName", user.name);
+                localStorage.setItem("userEmail", user.email);
+                localStorage.setItem("userAccountType", user.type);
+                localStorage.setItem("userAccNum", user.accNum);
+                localStorage.setItem("userBalance", user.balance);
+                localStorage.setItem("bankTransactions", JSON.stringify(user.transactions));
+                window.location.href = "dashboard.html";
+            } else {
+                alert("Identity Verification Failed: Credentials do not match.");
+            }
+        }
+
+        function recoverPassword() {
+            const email = document.getElementById('recoverEmail').value.trim();
+            const acc = document.getElementById('recoverAcc').value.trim();
+            const allUsers = JSON.parse(localStorage.getItem("bankUsersDatabase")) || [];
+            const user = allUsers.find(u => u.email === email && u.accNum === acc);
+            if (user) alert("Your Password: " + atob(user.pass));
+            else alert("Records not found.");
+        }
+    </script>
+</body>
+</html>
