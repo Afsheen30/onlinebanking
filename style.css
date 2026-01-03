@@ -1,25 +1,20 @@
 /* Professional Banking Style - Glassmorphism Edition */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    /* Deep blue gradient background matching your image */
     background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
-    height: 100vh;
+    min-height: 100vh; /* Changed from height to min-height for mobile scrolling */
     display: flex;
-    justify-content: center;
-    align-items: center;
+    justify-content: center; /* Centers horizontally */
+    align-items: center;     /* Centers vertically */
     margin: 0;
-    color: white; /* Default text to white for the dark theme */
+    color: white;
+    overflow-x: hidden; /* Prevents horizontal scroll if elements overlap */
 }
 
-/* Updated login container for better spacing */
-.login-container {
-    width: 100%;
-    max-width: 450px;
-    padding: 20px;
-}
-
-/* Glass effect for the box - matching your reference image */
-.login-box, .glass-panel {
+/* Ensure only ONE panel is visible and centered */
+.glass-panel {
+    width: 95%;             /* Responsive width for mobile */
+    max-width: 500px;       /* Professional desktop width */
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
@@ -28,6 +23,8 @@ body {
     border-radius: 20px;
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
     text-align: center;
+    box-sizing: border-box; /* Ensures padding doesn't increase width */
+    margin: 20px;           /* Adds space for mobile screens */
 }
 
 .brand {
@@ -37,12 +34,12 @@ body {
 
 .brand h2 {
     margin: 0;
-    color: #00d2ff; /* Cyan color from your image */
+    color: #00d2ff;
     font-size: 32px;
 }
 
 .brand span {
-    color: #ffffff; /* White contrast for 'Bank' */
+    color: #ffffff;
 }
 
 .brand p {
@@ -61,15 +58,15 @@ body {
 .input-group label {
     display: block;
     margin-bottom: 8px;
-    color: #00d2ff; /* Cyan labels */
+    color: #00d2ff;
     font-weight: 500;
     font-size: 14px;
 }
 
-.input-group input {
+.input-group input, .input-group select {
     width: 100%;
     padding: 12px;
-    background: rgba(255, 255, 255, 0.05); /* Semi-transparent inputs */
+    background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(0, 210, 255, 0.3);
     border-radius: 8px;
     color: white;
@@ -78,46 +75,35 @@ body {
     transition: 0.3s;
 }
 
+/* Specific fix for the Select dropdown to match Inputs */
+select option {
+    background: #203a43;
+    color: white;
+}
+
 .input-group input:focus {
     border-color: #00d2ff;
     box-shadow: 0 0 10px rgba(0, 210, 255, 0.2);
 }
 
-/* Cyan primary buttons like your image */
-.login-btn, .btn-cyan {
+.login-btn {
     width: 100%;
     padding: 12px;
     background: #00d2ff;
-    color: #0f2027; /* Dark text on light button */
+    color: #0f2027;
     border: none;
     border-radius: 8px;
     font-size: 16px;
     font-weight: bold;
     cursor: pointer;
     transition: 0.3s ease;
+    margin-top: 10px;
 }
 
-.login-btn:hover, .btn-cyan:hover {
+.login-btn:hover {
     background: #33e0ff;
     box-shadow: 0 0 20px rgba(0, 210, 255, 0.4);
     transform: translateY(-2px);
-}
-
-/* Transparent secondary buttons for Dashboard */
-.btn-glass {
-    background: rgba(0, 210, 255, 0.1);
-    border: 1px solid #00d2ff;
-    color: #00d2ff;
-    padding: 10px 15px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: 0.3s;
-}
-
-.btn-glass:hover {
-    background: #00d2ff;
-    color: #0f2027;
 }
 
 .options {
